@@ -1,0 +1,263 @@
+实验1
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include< conio.h> 
+#include<math.h> 
+
+// 矩阵中障碍值
+#define C1 1000000
+
+// 矩阵中下降路径搜索不可到达标记值
+#define C2 INT_MAX
+
+#define ROW 30 // 地图行数
+#define COL 30 // 地图列数
+#define OBSTACLE_RATE 0.25 // 障碍物占比
+
+void generate_map(double map[ROW + 1][COL+1]) {
+    // 设置随机种子
+    srand((unsigned)time(NULL));
+
+    // 初始化地图数组
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            map[i][j] = 0; // 0 表示可通行路径，1 表示障碍物
+        }
+    }
+
+    // 生成障碍物
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            double random_number = (double)rand() / RAND_MAX; // 生成 0~1 之间的随机数
+            if (random_number < OBSTACLE_RATE) {
+                map[i][j] = C1; // 生成障碍物
+            }
+        }
+    }
+    //生成边界
+    for (int i = 0; i < ROW + 1; i++)
+        map[i][COL] = C2;
+    for (int j = 0; j < COL + 1; j++)
+        map[ROW][j] = C2;
+}
+void print_map(double map[ROW + 1][COL+1]) {
+    // 输出地图
+    for (int i = 0; i < ROW+1; i++) {
+        for (int j = 0; j < COL+1; j++) {
+            if (map[i][j] == C1) {
+                printf("□"); // 用黑色标记障碍物
+            }
+            else if (map[i][j] == C2) {
+                printf("//"); // 用黑色标记障碍物
+            }
+            else {
+                printf("■"); // 空格表示可通行路径
+            }
+        }
+        printf("\n");
+    }
+}
+int check_connectivity(double map[ROW + 1][COL+1],int n,int p) {
+    // 使用深度优先搜索检查是否联通
+    int visited[ROW][COL] = { 0 }; // 0 表示未访问，1 表示已访问
+    int stack[ROW * COL][2];
+    int top = 0;
+    stack[top][0] = 0; // 起点的行坐标
+    stack[top][1] = 0; // 起点的列坐标
+    visited[0][0] = 1;
+
+    while (top >= 0) {
+        int x = stack[top][0];
+        int y = stack[top][1];
+        top--;
+
+        // 将当前点的四周未访问的相邻点入栈
+        if (x > 0 && map[x - 1][y] == 0 && visited[x - 1][y] == 0) {
+            top++;
+            stack[top][0] = x - 1;
+            stack[top][1] = y;
+            visited[x - 1][y] = 1;
+        }
+        if (x < ROW - 1 && map[x + 1][y] == 0 &&
+            visited[x + 1][y] == 0) {
+            top++;
+            stack[top][0] = x + 1;
+            stack[top][1] = y;
+            visited[x + 1][y] = 1;
+        }
+        if (y > 0 && map[x][y - 1] == 0 && visited[x][y - 1] == 0) {
+            top++;
+            stack[top][0] = x;
+            stack[top][1] = y - 1;
+            visited[x][y - 1] = 1;
+        }
+        if (y < COL - 1 && map[x][y + 1] == 0 && visited[x][y + 1] == 0) {
+            top++;
+            stack[top][0] = x;
+            stack[top][1] = y + 1;
+            visited[x][y + 1] = 1;
+        }
+    }
+    if (visited[n-1][p-1] == 1)
+        return 1;
+    else 
+        return 0;
+}
+double min(double a,double b) {
+    if (a < b)
+        return a;
+    else
+        return b;
+}
+// 动态规划算法实现
+// 下降路径搜索
+void descent_path_dp(double m[ROW + 1][COL+1],int j) {
+    j = j - 1;
+    for (int i = 0; i < COL; ++i) {   
+        //如果遇到障碍物就跳过
+        if (m[i][j] == C1)
+            continue;
+         // 第一列向下
+        if (j == 0) {
+                if(i == 0)//第一个位置不处理
+                    continue;
+                m[i][0] = m[i - 1][0] == C1 ? C2:m[i-1][0] + 1;
+        }
+        //第一行向右
+        else if (i == 0) {
+                m[0][j] = m[0][j - 1] == C1 ? C2:m[0][j - 1] + 1 ;
+        }
+        // 其他列向右、下、右下
+        else {
+            // 向下
+            double down = m[i - 1][j] == C1 ? C2 : m[i-1][j]+1;
+            // 向右下
+            double right_down = ( m[i - 1][j] == C1 && m[i][j - 1] == C1 )|| m[i - 1][j - 1] == C1 ? C2 : m[i-1][j - 1] + sqrt(2);
+            // 向右
+            double right = m[i][j - 1] == C1 ? C2 : m[i][j - 1]+1;
+            // 取三者的最小值，同时加上当前元素的值
+            m[i][j] = min(  min(down, right_down)  , right);
+        }
+    }
+}
+// 上升路径搜索
+void ascent_path_dp(double m[ROW + 1][COL+1],int j) {
+    j = j - 1;
+    for (int i = COL - 1; i >= 0; --i) {
+        if (m[i][j] == C1)
+            continue;
+        double up = m[i + 1][j] == C1 ? C2 : m[i + 1][j] + 1;
+        double right_up = (m[i + 1][j] == C1 && m[i][j - 1] == C1) || m[i + 1][j - 1] == C1 ? C2 : m[i + 1][j - 1] + sqrt(2);
+        m[i][j] = min(min(m[i][j], up), right_up);//往右（同下降路径搜索)、上还是右上方向取最小
+    }
+}
+// 求解最短路径
+double shortest_path(double m[ROW + 1][COL + 1], int n, int p) {
+    int j = 2;
+    if (p == 1) {//如果第一列能找到目标点
+        descent_path_dp(m,p);
+        for (int i = 0; i < n; i++) {
+            if (m[i][0] != C1)
+            {
+                if (i == n - 1)
+                    return m[n - 1][p - 1];
+            }
+            else//有障碍
+            {
+                return -1;//该算法无法求解该目标点
+            }
+        }
+    }
+    else {
+        descent_path_dp(m,1);
+        while (j <= p)  {
+            descent_path_dp(m,j); // 利用下降路径搜索动态规划求解 j 列各元素的最优路径值 M(i,j)
+            ascent_path_dp(m,j); //利用上升路径搜索覆盖最优状态值
+            j++;
+                        }
+        return m[n-1][p-1];
+        }
+    }
+
+int main() {
+    clock_t start1, start2, stop1, stop2;
+    start1 = clock();
+    double map[ROW+1][COL+1];
+    generate_map(map);
+    map[0][0]=0;//出发点必可通行
+    // 输出地图
+    print_map(map);
+    printf("\n");
+//输入目标点
+printf("请输入目标点\n");
+    int n,p;
+    stop1 = clock();
+    scanf_s("%d %d", &n, &p);
+    start2 = clock();
+      // 检查目标点是否联通
+    int is_connected = check_connectivity(map,n,p);
+    if (is_connected) {
+        printf("地图存在起点与目标点联通\n");
+        if (shortest_path(map, n, p) == -1)
+            printf("\n该算法无法求解该目标点\n");
+        else printf("\n路径结果为%f\n", shortest_path(map, n, p));
+    }
+    else {
+        printf("地图起点与目标点不连通\n");
+    }       
+    stop2 = clock();
+    double duration = ((double)((stop1 - start1)+(stop2 - start2))) / CLK_TCK;
+    printf("程序运行时间为：%f\n", duration);
+    double count_C1=0;
+    for (int i = 0; i < ROW + 1; i++) {
+    for (int j = 0; j < COL + 1; j++) {
+        if (map[i][j] == C1)
+            count_C1++;  
+    }
+    }
+    printf("障碍物覆盖率为 %.2f %%\n", count_C1/(ROW*COL)*100);
+    return 0;
+
+实验2
+//以下是主函数代码，其他部分与实验1一致。
+int main() {
+    double map[ROW + 1][COL + 1];
+    generate_map(map);
+    map[0][0] = 0;//出发点必可通行
+    // 输出地图
+    print_map(map);
+    //复制一个地图
+    double map_t[ROW + 1][COL + 1];
+    memmove(map_t,map, 8 * ROW * COL);
+    printf("\n");
+    int n, p;
+    //对同一地图重复三次实验
+    for (int k = 0; k < 3; k++ ) {
+    //输入目标点
+        printf("请输入目标点\n");
+        scanf_s("%d %d", &n, &p);
+        // 检查目标点是否联通
+    int is_connected = check_connectivity(map, n, p);
+        if (is_connected) {
+            printf("地图存在起点与目标点联通\n");
+            if (shortest_path(map, n, p) == -1)
+                printf("\n该算法无法求解该目标点\n");
+            else {
+                printf("\n路径结果为%f\n", shortest_path(map, n, p));
+            }
+        }
+        else
+            printf("地图起点与目标点不连通\n");
+    double count_C1 = 0;
+        for (int i = 0; i < ROW + 1; i++) {
+            for (int j = 0; j < COL + 1; j++) {
+                if (map[i][j] == C1)
+                    count_C1++;
+            }
+        }
+        printf("障碍物覆盖率为 %.2f %%\n", count_C1 / (ROW * COL) * 100);
+        memmove(map, map_t, 8 * ROW * COL);
+    }
+    return 0;
+}
