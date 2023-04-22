@@ -1,0 +1,186 @@
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include< stdlib.h >
+//LCS的暴力枚举算法
+//int max(int a, int b) {
+//    return (a > b) ? a : b;
+//}
+//
+//int lcs(char* X, char* Y, int m, int n) {
+//    if (m == 0 || n == 0)
+//        return 0;
+//    else if (X[m - 1] == Y[n - 1])
+//        return 1 + lcs(X, Y, m - 1, n - 1);
+//    else
+//        return max(lcs(X, Y, m, n - 1), lcs(X, Y, m - 1, n));
+//}
+//
+//int main() {
+//    char X[21];
+//    char Y[21];
+//    int m = 20;
+//    int n = 20;
+//
+//    for (int i = 0; i < m; i++) {
+//        X[i] = 'A' + (rand() % 26);
+//    }
+//    X[m] = '\0';
+//
+//    for (int i = 0; i < n; i++) {
+//        Y[i] = 'A' + (rand() % 26);
+//    }
+//    Y[n] = '\0';
+//
+//    clock_t tStart = clock();
+//    int len = lcs(X, Y, m, n);
+//    printf("Length of LCS is %d\n", len);
+//    printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
+//
+//    return 0;
+//}
+
+
+////LCS的动态规划算法
+//int max(int a, int b) {
+//    return (a > b) ? a : b;
+//}
+//
+//int lcs(char* X, char* Y, int m, int n) {
+//    int L[1001][1001];
+//    int i, j;
+//
+//    for (i = 0; i <= m; i++) {
+//        for (j = 0; j <= n; j++) {
+//            if (i == 0 || j == 0)
+//                L[i][j] = 0;
+//            else if (X[i - 1] == Y[j - 1])
+//                L[i][j] = L[i - 1][j - 1] + 1;
+//            else
+//                L[i][j] = max(L[i - 1][j], L[i][j - 1]);
+//        }
+//    }
+//
+//    return L[1001][1001];
+//}
+//
+//int main() {
+//    char X[1001];
+//    char Y[1001];
+//    int m = 1000;
+//    int n = 1000;
+//
+//    for (int i = 0; i < m; i++) {
+//        X[i] = 'A' + (rand() % 26);
+//    }
+//    X[m] = '\0';
+//
+//    for (int i = 0; i < n; i++) {
+//        Y[i] = 'A' + (rand() % 26);
+//    }
+//    Y[n] = '\0';
+//    clock_t tStart = clock();
+//    int len = lcs(X, Y, m, n);
+//    printf("Length of LCS is %d\n", len);
+//    printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
+//
+//    return 0;
+//}
+
+//LCS的分治算法
+//int max(int a, int b) {
+//    return (a > b) ? a : b;
+//}
+//
+//int lcs_divide(char* X, char* Y, int m, int n) {
+//    if (m == 0 || n == 0) {
+//        return 0;
+//    }
+//    else if (X[m - 1] == Y[n - 1]) {
+//        return lcs_divide(X, Y, m - 1, n - 1) + 1;
+//    }
+//    else {
+//        return max(lcs_divide(X, Y, m - 1, n), lcs_divide(X, Y, m, n - 1));
+//    }
+//}
+//
+//int main() {
+//    char X[51];
+//    char Y[51];
+//    int m = 50;
+//      int n = 50;
+//        for (int i = 0; i < m; i++) {
+//        X[i] = 'A' + (rand() % 26);
+//    }
+//    X[m] = '\0';
+//
+//    for (int i = 0; i < n; i++) {
+//        Y[i] = 'A' + (rand() % 26);
+//    }
+//    Y[n] = '\0';
+//
+//
+//
+//    clock_t start = clock();
+//
+//    int len = lcs_divide(X, Y, m, n);
+//
+//    clock_t end = clock();
+//
+//    printf("LCS length: %d\n", len);
+//    printf("Time: %lf seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
+//
+//    return 0;
+//}
+
+//回溯
+//int max(int a, int b) {
+//    return (a > b) ? a : b;
+//}
+//
+//void lcs_backtrack(char* X, char* Y, int m, int n, char* lcs, int* len, char* cur_lcs, int cur_len, int i, int j) {
+//    if (i == m || j == n) {
+//        if (cur_len > *len) {
+//            *len = cur_len;
+//            memcpy(lcs, cur_lcs, *len + 1);
+//        }
+//        return;
+//    }
+//
+//    if (X[i] == Y[j]) {
+//        cur_lcs[cur_len] = X[i];
+//        lcs_backtrack(X, Y, m, n, lcs, len, cur_lcs, cur_len + 1, i + 1, j + 1);
+//    }
+//    else {
+//        lcs_backtrack(X, Y, m, n, lcs, len, cur_lcs, cur_len, i + 1, j);
+//        lcs_backtrack(X, Y, m, n, lcs, len, cur_lcs, cur_len, i, j + 1);
+//    }
+//}
+//
+//int main() {
+//    char X[19];
+//    char Y[19];
+//    char lcs[19];
+//    char cur_lcs[19];
+//    int len = 0;
+//    int cur_len = 0;
+//
+//    // 随机生成两个字符串
+//    srand(time(NULL));
+//    for (int i = 0; i < 17; i++) {
+//        X[i] = rand() % 26 + 'a';
+//        Y[i] = rand() % 26 + 'a';
+//    }
+//    X[17] = '\0';
+//    Y[17] = '\0';
+//
+//    clock_t start = clock();
+//    lcs_backtrack(X, Y, strlen(X), strlen(Y), lcs, &len, cur_lcs, cur_len, 0, 0);
+//    clock_t end = clock();
+//
+//    printf("LCS: %s\n", lcs);
+//    printf("Length: %d\n", len);
+//    printf("Time: %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
+//
+//    return 0;
+//}
