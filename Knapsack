@@ -1,0 +1,67 @@
+#include<stdio.h>
+#include<string.h>
+//0-1背包问题
+int max(int a, int b);
+
+int main(){
+    int m, n;
+    scanf_s("%d %d", &m, &n);//输入容量和物品数量
+
+    int c[15], w[15];
+    for (int i = 1; i <= n; i++) {
+        scanf_s("%d %d", &c[i], &w[i]);
+    }
+
+    int i, j;
+    int dp[15][15];
+    memset(dp, 0, sizeof(dp));
+
+    for (j = 1; j <= m; j++) {
+        for (i = 1; i <= n; i++) {
+            if (c[i] > j)
+                dp[i][j] = dp[i-1][j];
+            else
+            dp[i][j] = max(dp[i-1][j], dp[i-1][j - c[i]] + w[i]);
+        }
+    }
+     printf("%d", dp[n][m]);
+return 0;
+}
+
+
+//完全背包问题
+
+
+int main(){
+    int m, n;
+    scanf_s("%d %d", &m, &n);//输入背包容量和物品数量
+
+    int c[15], w[15];
+    for (int i = 1; i <= n; i++) {
+        scanf_s("%d %d", &c[i], &w[i]);//输入物品容量和价值
+    }
+
+    int i, j;
+    int dp[15][15];
+    memset(dp, 0, sizeof(dp));
+
+    int k=1;
+    for (j = 1; j <= m; j++) {
+        for (i = 1; i <= n; i++) {
+            dp[i][j] = dp[i - 1][j];
+            while (k*c[i] <= j)
+            {
+                dp[i][j] = max(dp[i][j], dp[i-1][j -k* c[i]] +k* w[i]);
+                k++;
+            }
+            k = 1;
+        }
+    }
+  
+    printf("%d", dp[n][m]);
+    return 0;
+}
+
+int max(int a, int b) {
+    return a > b ? a : b;
+}
